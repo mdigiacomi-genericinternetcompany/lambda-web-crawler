@@ -8,6 +8,12 @@ var c = new Crawler();
 var pageContents = "";
 var forceCrawl = "false";
 
+var crawlSite = {
+    name: "service-terms",
+    url: "https://aws.amazon.com/service-terms/",
+    folder : "service-terms/"
+}
+
 var parser = new htmlparser2.Parser(
     {
         ontext(text) {
@@ -35,7 +41,7 @@ exports.handler = function(event, context, callback){
     }
     
     c.direct({
-        uri: 'https://aws.amazon.com/service-terms/',
+        uri: crawlSite.url,
         timeout: 1500000,
         skipEventRequest: false, 
         callback: function(error, response) {
@@ -57,7 +63,7 @@ exports.handler = function(event, context, callback){
                     console.log("Document Has Changed");
                     parser.write(response.$('main').text());
                     parser.end();
-                    putObjectToS3("page-scrape-data","aws-docs/termsofservice.txt", pageContents, callback);
+                    putObjectToS3("page-scrape-data", crawlSite.folder + crawlSite.name, pageContents, callback);
                 }
                 else
                 {
