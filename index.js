@@ -29,12 +29,9 @@ var parser = new htmlparser2.Parser(
 exports.handler = function(event, context, callback){
     c.direct({
         uri: 'https://aws.amazon.com/service-terms/',
+        timeout: 1500000,
         skipEventRequest: false, 
         callback: function(error, response) {
-            
-            
-            var $ = response.$;
-            console.log($('main').text());
             
             if(error) {
                 console.log(error)
@@ -43,7 +40,7 @@ exports.handler = function(event, context, callback){
                 if(new Date().toDateString() === curdate.toDateString())
                 {
                     console.log("Document Has Changed");
-                    parser.write($('main').text());
+                    parser.write(response.$('main').text());
                     parser.end();
                     putObjectToS3("page-scrape-data","aws-docs/termsofservice.txt", pageContents, callback);
                 }
@@ -51,7 +48,7 @@ exports.handler = function(event, context, callback){
                 {
                     
                     //Delete Once Working
-                    parser.write($('main').text());
+                    parser.write(response.$('main').text());
                     parser.end();
                     putObjectToS3("page-scrape-data","aws-docs/termsofservice.txt", pageContents, callback);
                     //Delete Above once Working
@@ -76,11 +73,12 @@ function putObjectToS3(bucket, key, data, callback){
           if (err) console.log(err, err.stack); // an error occurred
           else     console.log(data);           // successful response
           callback(null, {
-              statusCode: 200,
-              body: {
-                status: 'Success',
-                message: "Fuction Compled Successfully"
-              }
+              "statusCode": 200,
+              "isBase64Encoded": false,
+              "body": JSON.stringify({
+                "status": "Success",
+                "message": "Fuction Compled Successfully"
+              })
             });
         });
 }

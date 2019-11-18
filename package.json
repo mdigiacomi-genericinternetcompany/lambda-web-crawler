@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.572.0",
+    "cheerio": "^1.0.0-rc.3",
     "crawler": "^1.2.1",
     "htmlparser2": "^4.0.0"
   }
