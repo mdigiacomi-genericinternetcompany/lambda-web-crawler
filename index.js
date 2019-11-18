@@ -6,6 +6,7 @@ var AWS = require('aws-sdk');
 
 var c = new Crawler();
 var pageContents = "";
+var forceCrawl = "false";
 
 var parser = new htmlparser2.Parser(
     {
@@ -27,6 +28,12 @@ var parser = new htmlparser2.Parser(
 
 
 exports.handler = function(event, context, callback){
+
+    if(event && event.queryStringParameters && event.queryStringParameters.force)
+    {
+        forceCrawl = event.queryStringParameters.force;
+    }
+    
     c.direct({
         uri: 'https://aws.amazon.com/service-terms/',
         timeout: 1500000,
@@ -35,9 +42,17 @@ exports.handler = function(event, context, callback){
             
             if(error) {
                 console.log(error)
+                callback(null, {
+                      "statusCode": 200,
+                      "isBase64Encoded": false,
+                      "body": JSON.stringify({
+                        "status": "Success",
+                        "message": error
+                    })
+                });
             } else {
                 var curdate = new Date(response.headers["last-modified"]);
-                if(new Date().toDateString() === curdate.toDateString())
+                if(new Date().toDateString() === curdate.toDateString() || forceCrawl === "true")
                 {
                     console.log("Document Has Changed");
                     parser.write(response.$('main').text());
@@ -46,15 +61,15 @@ exports.handler = function(event, context, callback){
                 }
                 else
                 {
-                    
-                    //Delete Once Working
-                    parser.write(response.$('main').text());
-                    parser.end();
-                    putObjectToS3("page-scrape-data","aws-docs/termsofservice.txt", pageContents, callback);
-                    //Delete Above once Working
-                    
-                    //console.log("No Changes To Page. Last Modified: " + curdate.toDateString());
-                    //callback(null, "No changes");
+                    console.log("No Changes To Page. Last Modified: " + curdate.toDateString());
+                    callback(null, {
+                        "statusCode": 200,
+                        "isBase64Encoded": false,
+                        "body": JSON.stringify({
+                            "status": "Success",
+                            "message": "No Changes to Site"
+                        })
+                    });
                 }
             }
             
