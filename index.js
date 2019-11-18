@@ -11,7 +11,8 @@ var forceCrawl = "false";
 var crawlSite = {
     name: "service-terms",
     url: "https://aws.amazon.com/service-terms/",
-    folder : "service-terms/"
+    folder : "service-terms/",
+    contentTag: "main"
 }
 
 //defines the behavior of the parser
@@ -70,7 +71,7 @@ exports.handler = function(event, context, callback){
                 {
                     console.log("Document Has Changed");
                     //only parse the content in the <main> tag. This on AWS sites denoted the content
-                    parser.write(response.$('main').text());
+                    parser.write(response.$(crawlSite.contentTag).text());
                     parser.end();
                     //dump parsed results to S3
                     putObjectToS3("page-scrape-data", crawlSite.folder + crawlSite.name, pageContents, callback);
