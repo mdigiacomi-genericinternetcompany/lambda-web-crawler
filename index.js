@@ -13,7 +13,6 @@ var parser = new htmlparser2.Parser(
             if(/^\s*$/.test(text)) {}
             else
             {
-                //console.log(text);
                 pageContents = pageContents + text;
             }
         }
@@ -30,15 +29,36 @@ var parser = new htmlparser2.Parser(
 exports.handler = function(event, context, callback){
     c.direct({
         uri: 'https://aws.amazon.com/service-terms/',
-        skipEventRequest: false, // default to true, direct requests won't trigger Event:'request'
+        skipEventRequest: false, 
         callback: function(error, response) {
+            
+            
+            var $ = response.$;
+            console.log($('main').text());
+            
             if(error) {
                 console.log(error)
             } else {
-                console.log(response);
-                parser.write(response.body);
-                parser.end();
-                putObjectToS3("page-scrape-data","test/termsofservice.txt", pageContents, callback);
+                var curdate = new Date(response.headers["last-modified"]);
+                if(new Date().toDateString() === curdate.toDateString())
+                {
+                    console.log("Document Has Changed");
+                    parser.write($('main').text());
+                    parser.end();
+                    putObjectToS3("page-scrape-data","aws-docs/termsofservice.txt", pageContents, callback);
+                }
+                else
+                {
+                    
+                    //Delete Once Working
+                    parser.write($('main').text());
+                    parser.end();
+                    putObjectToS3("page-scrape-data","aws-docs/termsofservice.txt", pageContents, callback);
+                    //Delete Above once Working
+                    
+                    //console.log("No Changes To Page. Last Modified: " + curdate.toDateString());
+                    //callback(null, "No changes");
+                }
             }
             
         }
@@ -55,6 +75,12 @@ function putObjectToS3(bucket, key, data, callback){
         s3.putObject(params, function(err, data) {
           if (err) console.log(err, err.stack); // an error occurred
           else     console.log(data);           // successful response
-          callback(null, "Done");
+          callback(null, {
+              statusCode: 200,
+              body: {
+                status: 'Success',
+                message: "Fuction Compled Successfully"
+              }
+            });
         });
 }
