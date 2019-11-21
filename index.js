@@ -74,7 +74,11 @@ exports.handler = function(event, context, callback){
                     parser.write(response.$(crawlSite.contentTag).text());
                     parser.end();
                     //dump parsed results to S3
-                    putObjectToS3("page-scrape-data", crawlSite.folder + crawlSite.name, pageContents, callback);
+                    
+                    var filename = crawlSite.folder + crawlSite.name + ".new";
+                    console.log("Saving Contents to: " + filename);
+                    
+                    putObjectToS3("page-scrape-data", filename, pageContents, callback);
                 }
                 else
                 {
@@ -98,11 +102,13 @@ exports.handler = function(event, context, callback){
 
 function putObjectToS3(bucket, key, data, callback){
     var s3 = new AWS.S3();
-        var params = {
-            Bucket : bucket,
-            Key : key,
-            Body : data
-        }
+    var params = {
+        Bucket : bucket,
+        Key : key,
+        Body : data
+    }
+    
+    s3.deleteObjects(params, function(err, data) {
         s3.putObject(params, function(err, data) {
           if (err) console.log(err, err.stack); // an error occurred
           else     console.log(data);           // successful response
@@ -111,8 +117,9 @@ function putObjectToS3(bucket, key, data, callback){
               "isBase64Encoded": false,
               "body": JSON.stringify({
                 "status": "Success",
-                "message": "Fuction Compled Successfully"
+                "message": "Function Completed Successfully"
               })
             });
         });
+    });
 }
