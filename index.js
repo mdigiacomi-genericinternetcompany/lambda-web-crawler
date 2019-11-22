@@ -11,7 +11,7 @@ var forceCrawl = "false";
 var crawlSite = {
     name: "service-terms",
     url: "https://aws.amazon.com/service-terms/",
-    folder : "service-terms/",
+    folder : "/",
     contentTag: "main"
 }
 
@@ -75,7 +75,7 @@ exports.handler = function(event, context, callback){
                     parser.end();
                     //dump parsed results to S3
                     
-                    var filename = crawlSite.folder + crawlSite.name + ".new";
+                    var filename = crawlSite.name + ".new";
                     console.log("Saving Contents to: " + filename);
                     
                     putObjectToS3("page-scrape-data", filename, pageContents, callback);
@@ -102,16 +102,32 @@ exports.handler = function(event, context, callback){
 
 function putObjectToS3(bucket, key, data, callback){
     var s3 = new AWS.S3();
-    var params = {
+    var createparams = {
         Bucket : bucket,
         Key : key,
         Body : data
     }
     
-    s3.deleteObjects(params, function(err, data) {
-        s3.putObject(params, function(err, data) {
-          if (err) console.log(err, err.stack); // an error occurred
-          else     console.log(data);           // successful response
+    var deleteparams = { 
+        Bucket: bucket, 
+        Delete: 
+        { 
+            Objects: [ 
+                {
+                    Key: key
+                    
+                } 
+            ]
+            
+        }
+    }
+    
+    s3.deleteObjects(deleteparams, function(err, data) {
+        if (err) console.log(err, err.stack); // an error occurred
+        else     console.log(data); 
+        s3.putObject(createparams, function(err2, data2) {
+          if (err2) console.log(err2, err2.stack); // an error occurred
+          else     console.log(data2);           // successful response
           callback(null, {
               "statusCode": 200,
               "isBase64Encoded": false,
