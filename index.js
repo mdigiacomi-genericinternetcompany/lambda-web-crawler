@@ -37,6 +37,8 @@ var parser = new htmlparser2.Parser(
 
 
 exports.handler = function(event, context, callback){
+    
+    pageContents = "";
 
     //you can use querystring ?force=true to force a site crawl
     if(event && event.queryStringParameters && event.queryStringParameters.force)
