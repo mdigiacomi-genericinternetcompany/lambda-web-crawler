@@ -11,9 +11,9 @@
 #
 # Happy Coding!
 
-service: webscraper
+service: lambda-web-crawler
 # app and org for use with dashboard.serverless.com
-app: webscraper-app
+app: lambda-web-crawler
 org: digitaladrenalin
 
 # You can pin your service to only deploy with a specific Serverless version
@@ -59,7 +59,7 @@ provider:
 
 functions:
   hello:
-    handler: handler.hello
+    handler: index.hello
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
